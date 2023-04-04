@@ -1,5 +1,6 @@
 import axios from "axios";
 import { Formik, FormikHelpers, FormikState } from "formik";
+import { useState } from "react";
 import styled from "styled-components";
 
 interface Client {
@@ -9,12 +10,12 @@ interface Client {
     address: {
         street: string
         district: string
-        number:  number | undefined,
+        number: number | undefined,
         city: string
         state: string
         complement: string
     },
-    phone:  number | undefined,
+    phone: number | undefined,
     entity: string
 }
 
@@ -35,7 +36,10 @@ const initialValues: Client = {
 }
 
 
+
 export function ClientForm() {
+
+    const [clientCodes, setClientCodes] = useState([]);
 
     const handleSubmit = (values: Client, { resetForm }: FormikHelpers<Client>) => {
         axios
@@ -46,8 +50,25 @@ export function ClientForm() {
             })
             .catch((err) => {
                 console.error(err);
+                alert(err.response.data.message);
             });
     };
+
+    function checkCode() {
+        axios
+            .get("http://localhost:3000/clientes/code")
+            .then((res) => {
+                setClientCodes(res.data)
+            })
+            .catch((err) => {
+                console.error(err);
+                alert(err.response.data.message);
+            });
+    }
+
+    useState(() => {
+        checkCode()
+    }, [])
 
     return (
         <>

@@ -51,6 +51,19 @@ app.get("/clientes", async (req, res) => {
 })
 
 app.post("/add/clientes", async (req, res) => {
+
+    const { cpf, code } = req.body;
+
+    const existingCPF = Client.findOne({cpf})
+    if(existingCPF){
+        return res.status(400).json({ message: "CPF já cadastrado" });
+    }
+
+    const existingCode = Client.findOne({code})
+    if(existingCode){
+        return res.status(400).json({ message: "Código já cadastrado" });
+    }
+
     const client = new Client(req.body)
     client
         .save()
@@ -61,6 +74,11 @@ app.post("/add/clientes", async (req, res) => {
             console.error(err)
             res.status(500).send("Error saving client");
         });
+})
+
+app.get("/clientes/code", async (req, res) => {
+    const result = await Client.find({}, { _id: 0, code: 1 });
+    res.send(result.map(item => item.code));
 })
 
 app.listen(port, () => {

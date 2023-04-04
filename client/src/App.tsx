@@ -1,6 +1,6 @@
 import './App.css'
 import styled from "styled-components"
-import { ClientForm } from './components/ClienForm'
+import { ClientForm } from './components/ClientForm'
 
 export default function App() {
 
