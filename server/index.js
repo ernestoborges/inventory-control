@@ -1,7 +1,8 @@
 const express = require('express');
 const bodyParser = require('body-parser');
-const MongoClient = require('mongodb').MongoClient;
+const mongoose = require('mongoose');
 require('dotenv').config();
+const cors = require("cors");
 
 const app = express();
 const port = 3000;
@@ -14,24 +15,52 @@ const mongoCredentials = {
     hash: process.env.MONGO_HASH
 }
 
-const uri = `mongodb+srv://${mongoCredentials.username}:${mongoCredentials.password}@${mongoCredentials.cluster}.g32v3ox.mongodb.net/?retryWrites=true&w=majority`
-const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true });
+const uri = `mongodb+srv://${mongoCredentials.username}:${mongoCredentials.password}@${mongoCredentials.cluster}.g32v3ox.mongodb.net/TokeTok?retryWrites=true&w=majority`
 
-client.connect(err => {
-    if (err) throw err
-    else console.log('Conectado ao banco de dados!');
-});
+mongoose.connect(uri, { useNewUrlParser: true });
+
+const clientSchema = {
+    code: String,
+    name: String,
+    cpf: Number,
+    address: {
+        street: String,
+        district: String,
+        number: Number,
+        city: String,
+        state: String,
+        complement: String
+    },
+    phone: Number,
+    entity: String
+}
+
+const Client = mongoose.model("Client", clientSchema)
 
 app.use(bodyParser.json());
+app.use(cors());
 
 app.get('/produtos', (req, res) => {
     res.send('Listagem de produtos');
 });
 
 app.get("/clientes", async (req, res) => {
-    const db = client.db(mongoCredentials.database);
-    const clientes = await db.collection('clients').find().toArray();
-    res.send(clientes);
+    const result = await Client.find({})
+    console.log(result)
+    res.send(JSON.stringify(result));
+})
+
+app.post("/add/clientes", async (req, res) => {
+    const client = new Client(req.body)
+    client
+        .save()
+        .then(client => {
+            res.send(client)
+        })
+        .catch(err => {
+            console.error(err)
+            res.status(500).send("Error saving client");
+        });
 })
 
 app.listen(port, () => {
