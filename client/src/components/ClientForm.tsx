@@ -1,45 +1,134 @@
 import axios from "axios";
-import { Formik, FormikHelpers, FormikState } from "formik";
-import { useState } from "react";
+import { ErrorMessage, Field, Formik, FormikHelpers, FormikState } from "formik";
+import { useEffect, useState } from "react";
 import styled from "styled-components";
 
 interface Client {
     code: string
     name: string
-    cpf: number | undefined,
+    cpf: string
     address: {
         street: string
         district: string
-        number: number | undefined,
+        number: string,
         city: string
         state: string
         complement: string
     },
-    phone: number | undefined,
+    phone: string
+    celphone: string
     entity: string
 }
 
 const initialValues: Client = {
     code: "",
     name: "",
-    cpf: undefined,
+    cpf: "",
     address: {
         street: "",
         district: "",
-        number: undefined,
+        number: "",
         city: "",
         state: "",
         complement: ""
     },
-    phone: undefined,
-    entity: ""
+    phone: "",
+    celphone: "",
+    entity: "fisica"
 }
 
 
 
 export function ClientForm() {
 
-    const [clientCodes, setClientCodes] = useState([]);
+    const [clientCodes, setClientCodes] = useState<string[]>([]);
+
+    const handleValidate = (values: Client) => {
+        const errors: any = {};
+        const addressErrors: any = {};
+
+        // code
+        if (!values.code) {
+            errors.code = "Campo Obrigatório";
+        } else if (clientCodes.includes(values.code)) {
+            errors.code = "Codigo já cadastrado"
+        }
+
+        // name
+        if (!values.name) {
+            errors.name = 'Campo Obrigatório';
+        }
+
+        // cpf
+        if (!values.cpf) {
+            errors.cpf = 'Campo Obrigatório';
+        } else if (
+            !/^\d+$/.test(values.cpf)
+        ) {
+            errors.cpf = "Apenas números";
+        } else if (values.cpf.length !== 11) {
+            errors.cpf = "Mínimo 11 dígitos";
+        }
+
+        // phone
+        if (!values.phone && !values.celphone) {
+            errors.phone = "Telefone ou Celular necesário"
+        } else if (
+            values.phone &&
+            /^\d$/.test(values.phone)
+        ) {
+            errors.cpf = "Apenas números";
+        } else if (values.phone && values.phone.length !== 10) {
+            errors.phone = "Mínimo 10 dígitos"
+        }
+
+        // celphone
+        if (!values.phone && !values.celphone) {
+            errors.celphone = "Telefone ou Celular necesário"
+        } else if (
+            values.celphone &&
+            /^\d$/.test(values.celphone)
+        ) {
+            errors.celphone = "Apenas números";
+        } else if (values.celphone && values.celphone.length !== 11) {
+            errors.celphone = "Mínimo 11 dígitos"
+        }
+
+        // street
+        if (!values.address.street) {
+            addressErrors.street = 'Campo Obrigatório';
+        }
+
+         // number
+         if (!values.address.number) {
+            addressErrors.number = 'Campo Obrigatório';
+        }
+
+        // complement
+        if (!values.address.complement) {
+            addressErrors.complement = 'Campo Obrigatório';
+        }
+
+        // district
+        if (!values.address.district) {
+            addressErrors.district = 'Campo Obrigatório';
+        }
+
+        // city
+        if (!values.address.city) {
+            addressErrors.city = 'Campo Obrigatório';
+        }
+
+        // state
+        if (!values.address.state) {
+            addressErrors.state = 'Campo Obrigatório';
+        }
+
+        return {
+            ...errors,
+            address: addressErrors
+        };
+    }
 
     const handleSubmit = (values: Client, { resetForm }: FormikHelpers<Client>) => {
         axios
@@ -54,7 +143,7 @@ export function ClientForm() {
             });
     };
 
-    function checkCode() {
+    const checkCode = () => {
         axios
             .get("http://localhost:3000/clientes/code")
             .then((res) => {
@@ -66,7 +155,7 @@ export function ClientForm() {
             });
     }
 
-    useState(() => {
+    useEffect(() => {
         checkCode()
     }, [])
 
@@ -74,6 +163,7 @@ export function ClientForm() {
         <>
             <Formik
                 initialValues={initialValues}
+                validate={handleValidate}
                 onSubmit={handleSubmit}
             >
                 {({
@@ -90,11 +180,9 @@ export function ClientForm() {
                             <InputLabel>
                                 <div>
                                     <span>Código</span>
-                                    <span>
-                                        {errors.name && touched.name}
-                                    </span>
+                                    <ErrorMessage name="code" component="span" />
                                 </div>
-                                <input
+                                <Field
                                     type="text"
                                     name="code"
                                     onChange={handleChange}
@@ -105,12 +193,9 @@ export function ClientForm() {
                             <InputLabel>
                                 <div>
                                     <span>Nome</span>
-                                    <span>
-                                        {errors.name && touched.name}
-
-                                    </span>
+                                    <ErrorMessage name="name" component="span" />
                                 </div>
-                                <input
+                                <Field
                                     type="text"
                                     name="name"
                                     onChange={handleChange}
@@ -121,56 +206,87 @@ export function ClientForm() {
                             <InputLabel>
                                 <div>
                                     <span>CPF</span>
-                                    <span>
-                                        {errors.cpf && touched.cpf}
-                                    </span>
+                                    <ErrorMessage name="cpf" component="span" />
                                 </div>
-                                <input
-                                    type="number"
+                                <Field
+                                    type="text"
                                     name="cpf"
                                     onChange={handleChange}
                                     onBlur={handleBlur}
                                     value={values.cpf}
+                                    maxLength={11}
                                 />
                             </InputLabel>
-                            <InputLabel>
+                            <InputRadioLabel>
                                 <div>
-                                    <span>Telefone</span>
-                                    <span>
-                                        {errors.phone && touched.phone}
-                                    </span>
-                                </div>
-                                <input
-                                    type="number"
-                                    name="phone"
-                                    onChange={handleChange}
-                                    onBlur={handleBlur}
-                                    value={values.phone}
-                                />
-                            </InputLabel>
-                            <InputLabel>
-                                <div>
-                                    <span>Pessoa (Física/Jurídica)</span>
+                                    <span>Pessoa</span>
                                     <span>
                                         {errors.entity && touched.entity}
                                     </span>
                                 </div>
-                                <input
+                                <div>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            name="entity"
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                            value="fisica"
+                                            checked={values.entity === "fisica"}
+                                        />
+                                        <span>
+                                            Física
+                                        </span>
+                                    </label>
+                                    <label>
+                                        <input
+                                            type="radio"
+                                            name="entity"
+                                            onChange={handleChange}
+                                            onBlur={handleBlur}
+                                            value="juridica"
+                                            checked={values.entity === "juridica"}
+                                        />
+                                        <span>
+                                            Jurídica
+                                        </span>
+                                    </label>
+                                </div>
+                            </InputRadioLabel>
+                            <InputLabel>
+                                <div>
+                                    <span>Telefone</span>
+                                    <ErrorMessage name="phone" component="span" />
+                                </div>
+                                <Field
                                     type="text"
-                                    name="entity"
+                                    name="phone"
                                     onChange={handleChange}
                                     onBlur={handleBlur}
-                                    value={values.entity}
+                                    value={values.phone}
+                                    maxLength={10}
+                                />
+                            </InputLabel>
+                            <InputLabel>
+                                <div>
+                                    <span>Celular</span>
+                                    <ErrorMessage name="celphone" component="span" />
+                                </div>
+                                <Field
+                                    type="text"
+                                    name="celphone"
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    value={values.celphone}
+                                    maxLength={11}
                                 />
                             </InputLabel>
                             <InputLabel>
                                 <div>
                                     <span>Rua</span>
-                                    <span>
-                                        {errors.address?.street && touched.address?.street}
-                                    </span>
+                                    <ErrorMessage name="address.street" component="span" />
                                 </div>
-                                <input
+                                <Field
                                     type="text"
                                     name="address.street"
                                     onChange={handleChange}
@@ -181,11 +297,9 @@ export function ClientForm() {
                             <InputLabel>
                                 <div>
                                     <span>Número</span>
-                                    <span>
-                                        {errors.address?.number && touched.address?.number}
-                                    </span>
+                                    <ErrorMessage name="address.number" component="span" />
                                 </div>
-                                <input
+                                <Field
                                     type="text"
                                     name="address.number"
                                     onChange={handleChange}
@@ -196,11 +310,9 @@ export function ClientForm() {
                             <InputLabel>
                                 <div>
                                     <span>Complemento</span>
-                                    <span>
-                                        {errors.address?.complement && touched.address?.complement}
-                                    </span>
+                                    <ErrorMessage name="address.complement" component="span" />
                                 </div>
-                                <input
+                                <Field
                                     type="text"
                                     name="address.complement"
                                     onChange={handleChange}
@@ -211,11 +323,9 @@ export function ClientForm() {
                             <InputLabel>
                                 <div>
                                     <span>Bairro</span>
-                                    <span>
-                                        {errors.address?.district && touched.address?.district}
-                                    </span>
+                                    <ErrorMessage name="address.district" component="span" />
                                 </div>
-                                <input
+                                <Field
                                     type="text"
                                     name="address.district"
                                     onChange={handleChange}
@@ -226,11 +336,9 @@ export function ClientForm() {
                             <InputLabel>
                                 <div>
                                     <span>Cidade</span>
-                                    <span>
-                                        {errors.address?.city && touched.address?.city}
-                                    </span>
+                                    <ErrorMessage name="address.city" component="span" />
                                 </div>
-                                <input
+                                <Field
                                     type="text"
                                     name="address.city"
                                     onChange={handleChange}
@@ -241,11 +349,9 @@ export function ClientForm() {
                             <InputLabel>
                                 <div>
                                     <span>Estado</span>
-                                    <span>
-                                        {errors.address?.state && touched.address?.state}
-                                    </span>
+                                    <ErrorMessage name="address.state" component="span" />
                                 </div>
-                                <input
+                                <Field
                                     type="text"
                                     name="address.state"
                                     onChange={handleChange}
@@ -272,4 +378,35 @@ const InputLabel = styled.label`
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    
+    & > input[type="number"] {
+        -moz-appearance: textfield;
+    }
+
+    & > input[type="number"]::-webkit-inner-spin-button {
+        -webkit-appearance: none;  
+        margin: 0;
+    }
+    
+    & > input[type="number"]::-webkit-outer-spin-button {
+        -webkit-appearance: none;  
+        margin: 0;
+    }
 `
+
+const InputRadioLabel = styled.div`
+    & > div {
+        width: 100%;
+        display: flex;
+        justify-content: flex-start;
+        gap: 1rem;
+
+    }
+    & label {
+        cursor: pointer;
+    }
+    & input {
+        cursor: pointer;
+    }
+    
+    `
