@@ -46,7 +46,6 @@ app.get('/produtos', (req, res) => {
 
 app.get("/clientes", async (req, res) => {
     const result = await Client.find({})
-    console.log(result)
     res.send(JSON.stringify(result));
 })
 
