@@ -128,7 +128,9 @@ export function ClientForm() {
         };
     }
 
-    const handleSubmit = (values: Client, { resetForm }: FormikHelpers<Client>) => {
+    const handleFormSubmit = (values: Client, { resetForm }: FormikHelpers<Client>) => {
+        console.log("submiting")
+        console.log(JSON.stringify(values))
         axios
             .post("http://localhost:3000/add/clientes", values)
             .then((res) => {
@@ -162,8 +164,8 @@ export function ClientForm() {
             <Container>
                 <Formik
                     initialValues={initialValues}
-                    validate={handleValidate}
-                    onSubmit={handleSubmit}
+                    validate={()=>({})}
+                    onSubmit={handleFormSubmit}
                 >
                     {({
                         values,
@@ -358,7 +360,7 @@ export function ClientForm() {
                                         value={values.address.state}
                                     />
                                 </InputLabel>
-                                <button type="submit">
+                                <button type="submit" onClick={()=>handleFormSubmit}>
                                     Submit
                                 </button>
                             </InputsContainer>

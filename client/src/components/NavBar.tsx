@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom"
 import styled from "styled-components"
 
 export function NavBar() {
@@ -7,7 +8,7 @@ export function NavBar() {
                 <Nav>
                     <ul>
                         <li>
-                            Cliente
+                            <Link to="/cliente">Cliente</Link>
                         </li>
                         <li>
                             Estoque

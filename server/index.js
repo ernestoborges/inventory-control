@@ -51,14 +51,15 @@ app.get("/clientes", async (req, res) => {
 
 app.post("/add/clientes", async (req, res) => {
 
-    const { cpf, code } = req.body;
+    const cpf = req.body.cpf;
+    const code = req.body.code;
 
-    const existingCPF = Client.findOne({cpf})
+    const existingCPF = await Client.findOne({cpf})
     if(existingCPF){
-        return res.status(400).json({ message: "CPF já cadastrado" });
+        return res.status(400).json({ message: `CPF:${cpf} já cadastrado` });
     }
 
-    const existingCode = Client.findOne({code})
+    const existingCode = await Client.findOne({code})
     if(existingCode){
         return res.status(400).json({ message: "Código já cadastrado" });
     }

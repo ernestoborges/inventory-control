@@ -1,17 +1,24 @@
 import styled from "styled-components"
-import { ClientForm } from './components/ClientComponents/ClientForm'
 import { NavBar } from './components/NavBar'
 import { ClienSection } from "./components/ClientComponents/ClientSection"
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { ClientForm } from "./components/ClientComponents/ClientForm";
 
 export default function App() {
 
   return (
-    <AppStyle className="App">
-      <NavBar />
-      <DashboardContainer>
-        <ClienSection />
-      </DashboardContainer>
-    </AppStyle>
+    <Router>
+      <AppStyle className="App">
+        <NavBar />
+        <DashboardContainer>
+          <Routes>
+            <Route path="/" element={<div>Bem vindo!</div>} />
+            <Route path="/cliente" element={<ClienSection />} />
+            <Route path="/cliente/registro" element={<ClientForm />} />
+          </Routes>
+        </DashboardContainer>
+      </AppStyle>
+    </Router>
   )
 }
 
