@@ -18,10 +18,11 @@ interface Client {
     phone: string
     celphone: string
     entity: string
+    [key: string]: any;
 }
 
-function filterTranslation(string: string){
-    switch(string){
+function filterTranslation(string: string) {
+    switch (string) {
         case "name": return "nome";
         case "cpf": return "cpf";
         case "code": return "código";
@@ -37,6 +38,8 @@ export function ClienSection() {
     const [clientData, setClientData] = useState<Client[]>()
     const [clientFilter, setClientFilter] = useState("");
     const [filterOption, setFilterOption] = useState("name");
+    const [itensPerPage, setItensPerPage] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
 
     useEffect(() => {
         axios
@@ -55,33 +58,77 @@ export function ClienSection() {
         <>
             <ContainerSection>
                 <Header>
-                    <h2>Lista de clientes</h2>
                     <div>
+                        <h2>Lista de clientes</h2>
                         <Button to="/cliente/registro">Novo Cliente</Button>
-                        <SearchBarContainer>
-                            <SearchBar
-                                placeholder={`Buscar ${filterTranslation(filterOption)}`}
-                                onChange={(e) => setClientFilter(e.target.value)}
-                                value={clientFilter}
-                            />
-                            <AdvancedSearch>
-                                <label>
-                                    <span>
-                                        Filtrar por:
-                                    </span>
-                                    <select name="filter" onChange={(e)=>setFilterOption(e.target.value)}>
-                                        <option value="name">Nome</option>
-                                        <option value="code">Código</option>
-                                        <option value="cpf">CPF</option>
-                                        <option value="phone">Telefone</option>
-                                        <option value="celphone">Celular</option>
-                                        <option value="city">Cidade</option>
-                                    </select>
-                                </label>
-                            </AdvancedSearch>
-                        </SearchBarContainer>
                     </div>
+                    <SearchBarContainer>
+                        <SearchBar
+                            placeholder={`Buscar ${filterTranslation(filterOption)}`}
+                            onChange={(e) => setClientFilter(e.target.value)}
+                            value={clientFilter}
+                        />
+                        <AdvancedSearch>
+                            <label>
+                                <span>
+                                    Filtrar por:
+                                </span>
+                                <select name="filter" value={filterOption} onChange={(e) => setFilterOption(e.target.value)}>
+                                    <option value="name">Nome</option>
+                                    <option value="code">Código</option>
+                                    <option value="cpf">CPF</option>
+                                    <option value="phone">Telefone</option>
+                                    <option value="celphone">Celular</option>
+                                    <option value="address.city">Cidade</option>
+                                </select>
+                            </label>
+
+                        </AdvancedSearch>
+                    </SearchBarContainer>
                 </Header>
+                <ListController>
+                    <label>
+                        <span>
+                            Por página:
+                        </span>
+                        <select value={itensPerPage} onChange={(e) => setItensPerPage(Number(e.target.value))}>
+                            {
+                                Array.from({ length: 30 }, (_, index) => index + 1)
+                                    .map((value) => (
+                                        <option value={value}>{value}</option>
+                                    ))
+                            }
+                        </select>
+                    </label>
+                    <button onClick={() => {
+                        if (currentPage > 1) {
+                            setCurrentPage(currentPage - 1)
+                        }
+                    }}>anterior</button>
+                    <label>
+                        <span>Página:</span>
+                        <select value={currentPage} onChange={(e) => setCurrentPage(Number(e.target.value))}>
+                            {
+                                Array.from({ length: clientData ? Math.ceil(clientData.length / itensPerPage) : 1 }, (_, index) => index + 1)
+                                    .map((value) => (
+                                        <option value={value}>{value}</option>
+                                    ))
+                            }
+                        </select>
+                    </label>
+                    <label>
+                        <span>de:</span>
+                        <output>{clientData && Math.ceil(clientData.length / itensPerPage)}</output>
+                    </label>
+                    <button onClick={() => {
+                        if (
+                            clientData &&
+                            currentPage < Math.ceil(clientData.length / itensPerPage)
+                        ) {
+                            setCurrentPage(currentPage + 1)
+                        }
+                    }}>proximo</button>
+                </ListController>
                 <ListContainer>
                     <List>
                         <ListHeader as="div">
@@ -99,7 +146,15 @@ export function ClienSection() {
                                 : <ul>
                                     {
                                         clientData
-                                            .filter(client => client.name.toLowerCase().includes(clientFilter.toLowerCase()))
+                                            .filter(client => client[filterOption].toString().toLowerCase().includes(clientFilter.toLowerCase()))
+                                            // .filter((client, index) =>
+                                            //     index + 1 >= Math.floor(clientData.length / itensPerPage) * currentPage &&
+                                            //     index + 1 <= Math.floor(clientData.length / itensPerPage) * currentPage + 4
+                                            //     )
+                                            .filter((client, index) =>
+                                                index + 1 >= currentPage &&
+                                                index + 1 <= currentPage + itensPerPage - 1
+                                                )
                                             .map(client =>
                                                 <ListItem key={Number(client.code)}>
                                                     <div className="code">{client.code}</div>
@@ -131,13 +186,15 @@ const ContainerSection = styled.section`
 const Header = styled.div`
     width: 100%;
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    justify-content: space-between;
+    align-items: flex-start;
 
-    & > div {
+    & > div:first-child {
         display: flex;
-        justify-content: space-between;
+        flex-direction: column;
+        justify-content: center;
         align-items: flex-start;
+        gap: 1rem;
     }
 `
 
@@ -154,6 +211,11 @@ const Button = styled(Link)`
         border: 0.1rem solid var(--white);
     }
 `
+
+const ListController = styled.div`
+
+`
+
 const SearchBarContainer = styled.div`
     width: 100%;
     max-width: 40rem;
